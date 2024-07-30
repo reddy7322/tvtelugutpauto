@@ -3,7 +3,7 @@ import fetch from 'cross-fetch';
 // Function to generate M3U playlist
 const generateM3U = async () => {
     let m3uStr = '';
-    const channels = [1, 24]; // IDs of the channels to fetch
+    
 
     m3uStr = '#EXTM3U\n';
     m3uStr += '\n# Playlist generated using API\n';
