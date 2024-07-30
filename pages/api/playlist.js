@@ -1,5 +1,6 @@
 import fetch from 'cross-fetch';
 
+// Function to fetch all channel IDs
 const fetchAllChannelIds = async () => {
     try {
         const response = await fetch('https://lust.toxicify.pro/api/toxicify.json');
@@ -12,6 +13,7 @@ const fetchAllChannelIds = async () => {
     }
 };
 
+// Function to fetch data for a single channel
 const fetchChannelData = async (id) => {
     try {
         const response = await fetch(`https://lust.toxicify.pro/api/toxicify/${id}`);
@@ -24,6 +26,7 @@ const fetchChannelData = async (id) => {
     }
 };
 
+// Function to generate the M3U playlist
 const generateM3U = async () => {
     let m3uStr = '#EXTM3U\n\n# Playlist generated using API\n';
 
