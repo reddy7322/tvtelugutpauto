@@ -1,50 +1,38 @@
 import fetch from 'cross-fetch';
 
-// Function to fetch all channel IDs
-const fetchAllChannelIds = async () => {
-    try {
-        const response = await fetch('https://lust.toxicify.pro/api/toxicify.json');
-        if (!response.ok) throw new Error('Failed to fetch channel IDs');
-        const data = await response.json();
-        return data.map(channel => channel.live.id);
-    } catch (error) {
-        console.error('Error fetching channel IDs:', error);
-        return [];
-    }
-};
-
-// Function to fetch data for a single channel
-const fetchChannelData = async (id) => {
-    try {
-        const response = await fetch(`https://lust.toxicify.pro/api/toxicify/${id}`);
-        if (!response.ok) throw new Error(`Failed to fetch channel ID ${id}`);
-        const data = await response.json();
-        return data[0];
-    } catch (error) {
-        console.error(`Error fetching data for channel ID ${id}:`, error);
-        return null;
-    }
-};
-
-// Function to generate the M3U playlist
+// Function to generate M3U playlist
 const generateM3U = async () => {
-    let m3uStr = '#EXTM3U\n\n# Playlist generated using API\n';
+    let m3uStr = '';
+    const channels = [1, 24]; // IDs of the channels to fetch
 
-    try {
-        const channelIds = await fetchAllChannelIds();
-        for (const id of channelIds) {
-            const channel = await fetchChannelData(id);
-            if (channel) {
+    m3uStr = '#EXTM3U\n';
+    m3uStr += '\n# Playlist generated using API\n';
+
+    // Reduce the number of concurrent API calls
+    const fetchChannelData = async (id) => {
+        try {
+            const response = await fetch(`https://lust.toxicify.pro/api/toxicify/${id}`);
+            if (!response.ok) throw new Error(`Failed to fetch channel ID ${id}`);
+            const data = await response.json();
+
+            if (data && data.length > 0) {
+                const channel = data[0];
                 const live = channel.live;
+
                 m3uStr += `#EXTINF:-1 tvg-id="${live.id}" group-title="${live.genre}", ${live.title}\n`;
                 m3uStr += `#EXTVLCOPT:http-user-agent=${live.hmac}\n`;
                 m3uStr += `#EXTVLCOPT:http-cookie=${live.cookie}\n`;
                 m3uStr += `#EXTVLCOPT:http-header-fields="Cookie: ${live.cookie}"\n`;
                 m3uStr += `${live.mpd}\n\n`;
             }
+        } catch (error) {
+            console.error(`Error fetching data for channel ID ${id}:`, error);
         }
-    } catch (error) {
-        console.error('Error generating M3U playlist:', error);
+    };
+
+    // Fetch channel data sequentially to avoid timeouts
+    for (const id of channels) {
+        await fetchChannelData(id);
     }
 
     return m3uStr;
